@@ -1,66 +1,45 @@
 {
   "nodes": {
-    "gnulib-src": {
-      "flake": false,
-      "info": {
-        "lastModified": 1588070119,
-        "narHash": "sha256-gMIWbMSKisS5w6QxKFfN1IJHPHxZw9h5upzxpada+1c=",
-        "revCount": 20684
-      },
-      "locked": {
-        "ref": "master",
-        "rev": "5ec4d920e4acb45225320c3df9ae32fdff928413",
-        "type": "git",
-        "url": "https://git.savannah.gnu.org/git/gnulib.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://git.savannah.gnu.org/git/gnulib.git"
-      }
-    },
-    "hello-src": {
-      "flake": false,
-      "info": {
-        "lastModified": 1549746003,
-        "narHash": "sha256-7losVbaLgy9pjL6GoOrZAK6O6nCXm3pddo03UZDjxUc=",
-        "revCount": 454
-      },
-      "locked": {
-        "ref": "master",
-        "rev": "0cce403f478bd0a4a60d0b8566c67d3a72498008",
-        "type": "git",
-        "url": "https://git.savannah.gnu.org/git/hello.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://git.savannah.gnu.org/git/hello.git"
-      }
-    },
     "nixpkgs": {
-      "info": {
-        "lastModified": 1588027483,
-        "narHash": "sha256-DcNFRegA72g1fmVWp+kFxxD4JuAwwM7XjYy0ebRa56U="
-      },
       "locked": {
+        "lastModified": 1596510719,
+        "narHash": "sha256-2ZVoWJULisDDrnwN9uaB0ZR6bjTwAlhLNoy0YUGWsW8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2faa76db27c4a8045d050d9b390dbb2249b0f3c0",
+        "rev": "d418434d127bd2423b9115768d9cbf80ed5da52a",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-20.03",
-        "type": "indirect"
+        "owner": "NixOS",
+        "ref": "d418434d127bd2423b9115768d9cbf80ed5da52a",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "root": {
       "inputs": {
-        "gnulib-src": "gnulib-src",
-        "hello-src": "hello-src",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "vulnerablecode-src": "vulnerablecode-src"
+      }
+    },
+    "vulnerablecode-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1596537036,
+        "narHash": "sha256-On4DLcorr0otnzVhA2nSLOPgnkU/U5yGhS5GMhoxuVE=",
+        "owner": "nexB",
+        "repo": "vulnerablecode",
+        "rev": "6a2a1b6b26be93948831b1be785d4d2875c93784",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nexB",
+        "repo": "vulnerablecode",
+        "rev": "6a2a1b6b26be93948831b1be785d4d2875c93784",
+        "type": "github"
       }
     }
   },
   "root": "root",
-  "version": 5
+  "version": 7
 }

@@ -1,18 +1,18 @@
 {
-  description = "(insert short project description here)";
+  description = "Vulnerablecode - A free and open vulnerabilities database and the packages they impact.";
 
   # Nixpkgs / NixOS version to use.
-  inputs.nixpkgs.url = "nixpkgs/nixos-20.03";
+  #inputs.nixpkgs.url = "nixpkgs/nixos-20.03";
+  inputs.nixpkgs = { type = "github"; owner = "NixOS"; repo = "nixpkgs"; ref = "d418434d127bd2423b9115768d9cbf80ed5da52a"; };
 
   # Upstream source tree(s).
-  inputs.hello-src = { url = git+https://git.savannah.gnu.org/git/hello.git; flake = false; };
-  inputs.gnulib-src = { url = git+https://git.savannah.gnu.org/git/gnulib.git; flake = false; };
+  inputs.vulnerablecode-src = { type = "github"; owner = "nexB"; repo = "vulnerablecode"; rev =  "6a2a1b6b26be93948831b1be785d4d2875c93784"; flake = false; };
 
-  outputs = { self, nixpkgs, hello-src, gnulib-src }:
+  outputs = { self, nixpkgs, vulnerablecode-src}:
     let
 
       # Generate a user-friendly version numer.
-      version = builtins.substring 0 8 hello-src.lastModifiedDate;
+      version = builtins.substring 0 7 vulnerablecode-src.rev;
 
       # System types to support.
       supportedSystems = [ "x86_64-linux" ];
@@ -23,6 +23,7 @@
       # Nixpkgs instantiated for supported system types.
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
 
+
     in
 
     {
@@ -30,22 +31,25 @@
       # A Nixpkgs overlay.
       overlay = final: prev: {
 
-        hello = with final; stdenv.mkDerivation rec {
-          name = "hello-${version}";
+        pypi2nix = import ./requirements.nix { pkgs = final; };
 
-          src = hello-src;
+        vulnerablecode = with final; python38Packages.buildPythonApplication rec {
+          inherit version;
+          pname = "vulnerablecode";
 
-          buildInputs = [ autoconf automake gettext gnulib perl gperf texinfo help2man ];
+          src = vulnerablecode-src;
 
-          preConfigure = ''
-            mkdir -p .git # force BUILD_FROM_GIT
-            ./bootstrap --gnulib-srcdir=${gnulib-src} --no-git --skip-po
+          propagatedBuildInputs = builtins.attrValues pypi2nix.packages;
+
+          dontBuild = true;
+
+          doCheck = false;
+
+          installPhase = ''
+              mkdir -p $out
+              cp -r $src/* $out
           '';
 
-          meta = {
-            homepage = "https://www.gnu.org/software/hello/";
-            description = "A program to show a familiar, friendly greeting";
-          };
         };
 
       };
@@ -53,68 +57,60 @@
       # Provide some binary packages for selected system types.
       packages = forAllSystems (system:
         {
-          inherit (nixpkgsFor.${system}) hello;
+          inherit (nixpkgsFor.${system}) vulnerablecode;
         });
 
       # The default package for 'nix build'. This makes sense if the
       # flake provides only one package or there is a clear "main"
       # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.hello);
-
-      # A NixOS module, if applicable (e.g. if the package provides a system service).
-      nixosModules.hello =
-        { pkgs, ... }:
-        {
-          nixpkgs.overlays = [ self.overlay ];
-
-          environment.systemPackages = [ pkgs.hello ];
-
-          #systemd.services = { ... };
-        };
+      defaultPackage = forAllSystems (system: self.packages.${system}.vulnerablecode);
 
       # Tests run by 'nix flake check' and by Hydra.
       checks = forAllSystems (system: {
-        inherit (self.packages.${system}) hello;
+        inherit (self.packages.${system}) vulnerablecode;
 
         # Additional tests, if applicable.
-        test =
+        vulnerablecode-pytest =
           with nixpkgsFor.${system};
           stdenv.mkDerivation {
-            name = "hello-test-${version}";
+            name = "vulnerablecode-pytest-${version}";
 
-            buildInputs = [ hello ];
+            buildInputs = [ wget postgresql vulnerablecode ];
+
+            # Used by pygit2.
+            # See https://github.com/NixOS/nixpkgs/pull/72544#issuecomment-582674047.
+            SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
 
             unpackPhase = "true";
 
+            # Setup postgres, run migrations, run pytset and test-run the webserver.
+            # See ${vulnerablecode}/README.md for the original instructions.
+            # Notes:
+            # - $RUNDIR is used to prevent postgres from accessings its default run dir at /run/postgresql.
+            #   See also https://github.com/NixOS/nixpkgs/issues/83770#issuecomment-607992517.
+            # - pytest can only be run with an running postgres database server.
             buildPhase = ''
-              echo 'running some integration tests'
-              [[ $(hello) = 'Hello, world!' ]]
+              DATADIR=$(pwd)/pgdata
+              RUNDIR=$(pwd)/run
+              ENCODING="UTF-8"
+              mkdir -p $RUNDIR
+              initdb -D $DATADIR -E $ENCODING
+              pg_ctl -D $DATADIR -o "-k $RUNDIR" -l $DATADIR/logfile start
+              createuser --host $RUNDIR --no-createrole --no-superuser --login --inherit --createdb --pwprompt vulnerablecode
+              createdb   --host $RUNDIR -E $ENCODING --owner=vulnerablecode --user=vulnerablecode --password --port=5432 vulnerablecode
+              (
+                export DJANGO_DEV=1
+                ${vulnerablecode}/manage.py migrate
+                pytest ${vulnerablecode}
+                ${vulnerablecode}/manage.py runserver &
+                sleep 5
+                ${wget}/bin/wget http://127.0.0.1:8000/api/
+                kill %1 # kill webserver
+              )
             '';
 
             installPhase = "mkdir -p $out";
           };
-
-        # A VM test of the NixOS module.
-        vmTest =
-          with import (nixpkgs + "/nixos/lib/testing-python.nix") {
-            inherit system;
-          };
-
-          makeTest {
-            nodes = {
-              client = { ... }: {
-                imports = [ self.nixosModules.hello ];
-              };
-            };
-
-            testScript =
-              ''
-                start_all()
-                client.wait_for_unit("multi-user.target")
-                client.succeed("hello")
-              '';
-          };
       });
-
     };
 }

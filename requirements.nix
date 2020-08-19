@@ -2,7 +2,7 @@
 # See more at: https://github.com/nix-community/pypi2nix
 #
 # COMMAND:
-#   pypi2nix -r requirements.txt --extra-build-inputs 'libgit2 libgit2-glib libxml2 libxslt postgresql'
+#   pypi2nix --python-version python38 -r requirements.txt --extra-build-inputs 'libgit2 libgit2-glib libxml2 libxslt postgresql'
 #
 
 { pkgs ? import <nixpkgs> {},
@@ -18,7 +18,7 @@ let
   import "${toString pkgs.path}/pkgs/top-level/python-packages.nix" {
     inherit pkgs;
     inherit (pkgs) stdenv;
-    python = pkgs.python3;
+    python = pkgs.python38;
   };
 
   commonBuildInputs = with pkgs; [ libgit2 libgit2-glib libxml2 libxslt postgresql ];
@@ -28,7 +28,7 @@ let
     let
       pkgs = builtins.removeAttrs pkgs' ["__unfix__"];
       interpreterWithPackages = selectPkgsFn: pythonPackages.buildPythonPackage {
-        name = "python3-interpreter";
+        name = "python38-interpreter";
         buildInputs = [ makeWrapper ] ++ (selectPkgsFn pkgs);
         buildCommand = ''
           mkdir -p $out/bin
@@ -162,8 +162,8 @@ let
     "backcall" = python.mkDerivation {
       name = "backcall-0.1.0";
       src = pkgs.fetchurl {
-        url = "https://files.pythonhosted.org/packages/84/71/c8ca4f5bb1e08401b916c68003acf0a0655df935d74d93bf3f3364b310e0/backcall-0.1.0.tar.gz";
-        sha256 = "38ecd85be2c1e78f77fd91700c76e14667dc21e2713b63876c0eb901196e01e4";
+        url = "https://files.pythonhosted.org/packages/1b/b3/0708228132a772de8802967af71d00c6b1f2f407e6f8efcc7055ac5900fe/backcall-0.1.0.zip";
+        sha256 = "bbbf4b1e5cd2bdb08f915895b51081c041bac22394fdfcfdfbe9f14b77c08bf2";
 };
       doCheck = commonDoCheck;
       format = "setuptools";
