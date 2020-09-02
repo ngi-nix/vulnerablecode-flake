@@ -23,17 +23,16 @@
       # Nixpkgs instantiated for supported system types.
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
 
-
     in
 
     {
 
       # A Nixpkgs overlay.
-      overlay = final: prev: {
+      overlay = final: prev: with final.pkgs; {
 
         pypi2nix = import ./requirements.nix { pkgs = final; };
 
-        vulnerablecode = with final; python38Packages.buildPythonApplication rec {
+        vulnerablecode = python38Packages.buildPythonApplication rec {
           inherit version;
           pname = "vulnerablecode";
 
@@ -49,6 +48,12 @@
               mkdir -p $out
               cp -r $src/* $out
           '';
+
+          meta = {
+            homepage = "https://github.com/nexB/vulnerablecode";
+            license = lib.licenses.asl20;
+            description = "A free and open vulnerabilities database and the packages they impact. And the tools to aggregate and correlate these vulnerabilities.";
+          };
 
         };
 
@@ -73,7 +78,7 @@
         vulnerablecode-pytest =
           with nixpkgsFor.${system};
           stdenv.mkDerivation {
-            name = "vulnerablecode-pytest-${version}";
+            name = "vulnerablecode-test-${version}";
 
             buildInputs = [ wget postgresql vulnerablecode ];
 
