@@ -25,17 +25,17 @@
     "vulnerablecode-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1596537036,
-        "narHash": "sha256-On4DLcorr0otnzVhA2nSLOPgnkU/U5yGhS5GMhoxuVE=",
+        "lastModified": 1600189518,
+        "narHash": "sha256-bOgZnUrVQ4nXgo+x0HgfxG51jjQlm0FYSB+nJvKk/S4=",
         "owner": "nexB",
         "repo": "vulnerablecode",
-        "rev": "6a2a1b6b26be93948831b1be785d4d2875c93784",
+        "rev": "a44d173b926862542fc6107b416f217791efae4a",
         "type": "github"
       },
       "original": {
         "owner": "nexB",
         "repo": "vulnerablecode",
-        "rev": "6a2a1b6b26be93948831b1be785d4d2875c93784",
+        "rev": "a44d173b926862542fc6107b416f217791efae4a",
         "type": "github"
       }
     }

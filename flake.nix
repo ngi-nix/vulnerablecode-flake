@@ -1,14 +1,26 @@
 {
-  description = "Vulnerablecode - A free and open vulnerabilities database and the packages they impact.";
+  description =
+    "Vulnerablecode - A free and open vulnerabilities database and the packages they impact.";
 
   # Nixpkgs / NixOS version to use.
   #inputs.nixpkgs.url = "nixpkgs/nixos-20.03";
-  inputs.nixpkgs = { type = "github"; owner = "NixOS"; repo = "nixpkgs"; ref = "d418434d127bd2423b9115768d9cbf80ed5da52a"; };
+  inputs.nixpkgs = {
+    type = "github";
+    owner = "NixOS";
+    repo = "nixpkgs";
+    ref = "d418434d127bd2423b9115768d9cbf80ed5da52a";
+  };
 
   # Upstream source tree(s).
-  inputs.vulnerablecode-src = { type = "github"; owner = "nexB"; repo = "vulnerablecode"; rev =  "6a2a1b6b26be93948831b1be785d4d2875c93784"; flake = false; };
+  inputs.vulnerablecode-src = {
+    type = "github";
+    owner = "nexB";
+    repo = "vulnerablecode";
+    rev = "a44d173b926862542fc6107b416f217791efae4a";
+    flake = false;
+  };
 
-  outputs = { self, nixpkgs, vulnerablecode-src}:
+  outputs = { self, nixpkgs, vulnerablecode-src }:
     let
 
       # Generate a user-friendly version numer.
@@ -18,65 +30,64 @@
       supportedSystems = [ "x86_64-linux" ];
 
       # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
-      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
+      forAllSystems = f:
+        nixpkgs.lib.genAttrs supportedSystems (system: f system);
 
       # Nixpkgs instantiated for supported system types.
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
+      nixpkgsFor = forAllSystems (system:
+        import nixpkgs {
+          inherit system;
+          overlays = [ self.overlay ];
+        });
 
-    in
-
-    {
+    in {
 
       # A Nixpkgs overlay.
-      overlay = final: prev: with final.pkgs; {
+      overlay = final: prev:
+        with final.pkgs; {
 
-        pypi2nix = import ./requirements.nix { pkgs = final; };
+          vulnerablecode = poetry2nix.mkPoetryApplication {
+            projectDir = ./.;
+            src = vulnerablecode-src;
+            python = python38;
+            overrides = poetry2nix.overrides.withDefaults (self: super: {
+              pygit2 = super.pygit2.overridePythonAttrs
+                (old: { buildInputs = old.buildInputs ++ [ libgit2-glib ]; });
+            });
+            dontBuild = true;
 
-        vulnerablecode = python38Packages.buildPythonApplication rec {
-          inherit version;
-          pname = "vulnerablecode";
-
-          src = vulnerablecode-src;
-
-          propagatedBuildInputs = builtins.attrValues pypi2nix.packages;
-
-          dontBuild = true;
-
-          doCheck = false;
-
-          installPhase = ''
+            installPhase = ''
               mkdir -p $out
               cp -r $src/* $out
-          '';
+            '';
 
-          meta = {
-            homepage = "https://github.com/nexB/vulnerablecode";
-            license = lib.licenses.asl20;
-            description = "A free and open vulnerabilities database and the packages they impact. And the tools to aggregate and correlate these vulnerabilities.";
+            meta = {
+              homepage = "https://github.com/nexB/vulnerablecode";
+              license = lib.licenses.asl20;
+              description =
+                "A free and open vulnerabilities database and the packages they impact. And the tools to aggregate and correlate these vulnerabilities.";
+            };
+
           };
 
         };
 
-      };
-
       # Provide some binary packages for selected system types.
-      packages = forAllSystems (system:
-        {
-          inherit (nixpkgsFor.${system}) vulnerablecode;
-        });
+      packages = forAllSystems
+        (system: { inherit (nixpkgsFor.${system}) vulnerablecode; });
 
       # The default package for 'nix build'. This makes sense if the
       # flake provides only one package or there is a clear "main"
       # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.vulnerablecode);
+      defaultPackage =
+        forAllSystems (system: self.packages.${system}.vulnerablecode);
 
       # Tests run by 'nix flake check' and by Hydra.
       checks = forAllSystems (system: {
         inherit (self.packages.${system}) vulnerablecode;
 
         # Additional tests, if applicable.
-        vulnerablecode-pytest =
-          with nixpkgsFor.${system};
+        vulnerablecode-pytest = with nixpkgsFor.${system};
           stdenv.mkDerivation {
             name = "vulnerablecode-test-${version}";
 
