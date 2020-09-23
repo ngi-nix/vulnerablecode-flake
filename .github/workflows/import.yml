@@ -36,4 +36,4 @@ jobs:
             experimental-features = nix-command flakes
       - name: import
         run: |
-          import.sh
+          ./import.sh
