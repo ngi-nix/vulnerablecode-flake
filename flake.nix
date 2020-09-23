@@ -112,8 +112,8 @@
               mkdir -p $RUNDIR
               initdb -D $DATADIR -E $ENCODING
               pg_ctl -D $DATADIR -o "-k $RUNDIR" -l $DATADIR/logfile start
-              createuser --host $RUNDIR --no-createrole --no-superuser --login --inherit --createdb --pwprompt vulnerablecode
-              createdb   --host $RUNDIR -E $ENCODING --owner=vulnerablecode --user=vulnerablecode --password --port=5432 vulnerablecode
+              createuser --host $RUNDIR --no-createrole --no-superuser --login --inherit --createdb vulnerablecode
+              createdb   --host $RUNDIR -E $ENCODING --owner=vulnerablecode --user=vulnerablecode --port=5432 vulnerablecode
               (
                 export DJANGO_DEV=1
                 ${vulnerablecode}/manage.py migrate
