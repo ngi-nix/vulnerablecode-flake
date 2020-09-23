@@ -1,0 +1,41 @@
+on:
+  push:
+  pull_request:
+  schedule:
+    # run on the 3rd each month at 10:00am.
+    - cron: '0 10 3 * *'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: setup
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v11
+        with:
+          install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-3.0pre20200820_4d77513/install
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: run checks
+        run: |
+          nix --print-build-logs flake check
+
+  import:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: setup
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: cachix/install-nix-action@v11
+        with:
+          install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-3.0pre20200820_4d77513/install
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: import
+        run: |
+          import.sh
