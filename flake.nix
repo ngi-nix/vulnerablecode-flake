@@ -72,6 +72,13 @@
 
         };
 
+      # Provide a nix-shell env to work with vulnerablecode.
+      devShell = forAllSystems (system: nixpkgsFor.${system}.mkShell rec {
+          vulnerablecode = self.packages.${system}.vulnerablecode;
+          buildInputs =  with import nixpkgs {}; [ postgresql vulnerablecode ];
+        }
+      );
+
       # Provide some binary packages for selected system types.
       packages = forAllSystems
         (system: { inherit (nixpkgsFor.${system}) vulnerablecode; });

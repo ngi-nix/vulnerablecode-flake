@@ -21,7 +21,7 @@ createuser --host "$RUNDIR" --no-createrole --no-superuser --login --inherit --c
 createdb   --host "$RUNDIR" -E $ENCODING --owner=vulnerablecode --user=vulnerablecode --port=5432 vulnerablecode
 (
   export DJANGO_DEV=1
-  ${out}/manage.py migrate
+  ${vulnerablecode}/manage.py migrate
   #pytest ${out}
-  ${out}/manage.py import --all
+  ${vulnerablecode}/manage.py import --all
 )
