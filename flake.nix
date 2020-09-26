@@ -73,9 +73,9 @@
         };
 
       # Provide a nix-shell env to work with vulnerablecode.
-      devShell = forAllSystems (system: nixpkgsFor.${system}.mkShell rec {
+      devShell = forAllSystems (system: nixpkgsFor.${system}.mkShell {
           vulnerablecode = self.packages.${system}.vulnerablecode;
-          buildInputs =  with import nixpkgs {}; [ postgresql vulnerablecode ];
+          buildInputs = with nixpkgsFor.${system}; [ postgresql vulnerablecode ];
         }
       );
 
@@ -98,7 +98,8 @@
           stdenv.mkDerivation {
             name = "vulnerablecode-test-${version}";
 
-            buildInputs = [ wget postgresql vulnerablecode ];
+            # todo: use same deps as devShell
+            buildInputs = [ wget ] ++ self.devShell.${system}.buildInputs;
 
             # Used by pygit2.
             # See https://github.com/NixOS/nixpkgs/pull/72544#issuecomment-582674047.
