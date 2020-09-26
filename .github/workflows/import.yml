@@ -31,6 +31,7 @@ jobs:
           fetch-depth: 0
       - uses: cachix/install-nix-action@v11
         with:
+          nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/d418434d127bd2423b9115768d9cbf80ed5da52a.tar.gz
           install_url: https://github.com/numtide/nix-flakes-installer/releases/download/nix-3.0pre20200820_4d77513/install
           extra_nix_config: |
             experimental-features = nix-command flakes
