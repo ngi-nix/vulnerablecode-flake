@@ -22,6 +22,5 @@ createdb   --host "$RUNDIR" -E $ENCODING --owner=vulnerablecode --user=vulnerabl
 (
   export DJANGO_DEV=1
   ${vulnerablecode}/manage.py migrate
-  #pytest ${out}
-  ${vulnerablecode}/manage.py import --all
+  ${vulnerablecode}/manage.py import "$@"
 )
