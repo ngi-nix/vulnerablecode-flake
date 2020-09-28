@@ -11,6 +11,8 @@ Links:
 ``poetry2nix`` was used in order to setup the Python dependencies of the project.
 
 ```bash
+# Get code.
+git clone git@github.com:nexB/vulnerablecode.git && cd vulnerablecode
 # Launch shell with necessary dependencies.
 nix-shell -p poetry -p libxml2 -p libxslt 
 # Setup poetry project.
